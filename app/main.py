@@ -78,6 +78,7 @@ def update_post(id: int, post: Post):
     return {"data": post_dict}
 
 
+# Deleting a post
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
 
