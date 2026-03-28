@@ -75,18 +75,23 @@ def create_post(post: Post):
     )
     new_post = cursor.fetchone()
 
+    # Commits to db
     conn.commit()
     return {"data": new_post}
 
 
 @app.get("/posts/{id}")
 def get_post_id(id: int):
-    post = find_post(id)
+    # For some reason will crash if id is above 9 without comma after id
+    cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
+    post = cursor.fetchone()
+
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id {id} was not found",
         )
+
     return {"data": post}
 
 
