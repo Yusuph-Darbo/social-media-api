@@ -26,6 +26,8 @@ while True:
             cursor_factory=RealDictCursor,
         )
         cursor = conn.cursor()
+        # Have to specify which schema to query
+        cursor.execute("SET search_path TO social_media_api;")
         print("Database connection was successful")
         break
     except Exception as error:
@@ -59,15 +61,22 @@ async def root():
 
 @app.get("/posts")
 async def get_posts():
-    return {"data": my_posts}
+    cursor.execute("""SELECT * FROM posts """)
+    posts = cursor.fetchall()
+    return {"data": posts}
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_post(post: Post):
-    post_dict = post.model_dump()
-    post_dict["id"] = randrange(0, 10000000000)
-    my_posts.append(post_dict)
-    return {"data": post_dict}
+    # Prevents SQL injection via sanitation
+    cursor.execute(
+        """INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * """,
+        (post.title, post.content, post.published),
+    )
+    new_post = cursor.fetchone()
+
+    conn.commit()
+    return {"data": new_post}
 
 
 @app.get("/posts/{id}")
