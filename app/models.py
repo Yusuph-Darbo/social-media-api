@@ -4,6 +4,7 @@ from .database import Base
 
 class Post(Base):
     __tablename__ = "posts"
+    __table_args__ = {"schema": "social_media_api"}
 
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False)
