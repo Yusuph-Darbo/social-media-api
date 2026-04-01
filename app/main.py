@@ -45,6 +45,7 @@ async def root():
     return {"message": "Hello World"}
 
 
+# Test route
 @app.get("/sql")
 def test_posts(db: Session = Depends(get_db)):
 
@@ -54,23 +55,36 @@ def test_posts(db: Session = Depends(get_db)):
 
 
 @app.get("/posts")
-async def get_posts():
-    cursor.execute("""SELECT * FROM posts """)
-    posts = cursor.fetchall()
+async def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM posts """)
+    # posts = cursor.fetchall()
+
+    # Querying using ORM
+    posts = db.query(models.Post).all()
     return {"data": posts}
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post: Post):
-    # Prevents SQL injection via sanitation
-    cursor.execute(
-        """INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * """,
-        (post.title, post.content, post.published),
-    )
-    new_post = cursor.fetchone()
+def create_post(post: Post, db: Session = Depends(get_db)):
+    # # Prevents SQL injection via sanitation
+    # cursor.execute(
+    #     """INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * """,
+    #     (post.title, post.content, post.published),
+    # )
+    # new_post = cursor.fetchone()
 
-    # Commits to db
-    conn.commit()
+    # # Commits to db
+    # conn.commit()
+    new_post = models.Post(
+        title=post.title, content=post.content, published=post.published
+    )
+
+    # Add new post to db
+    db.add(new_post)
+    db.commit()
+    # Return the newly created post
+    db.refresh(new_post)
+
     return {"data": new_post}
 
 
