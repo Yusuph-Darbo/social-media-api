@@ -22,6 +22,7 @@ class UserCreate(BaseModel):
     password: str
 
 
+# No use case to return the user's password
 class UserOut(BaseModel):
     id: int
     email: str

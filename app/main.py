@@ -2,14 +2,11 @@ from fastapi import FastAPI, status, HTTPException, Response, Depends
 from typing import Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from pwdlib import PasswordHash
 import time
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models, schemas, utils
 from .database import engine, get_db
 
-
-password_hash = PasswordHash.recommended()
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -113,6 +110,7 @@ def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)
             detail=f"Post with id {id} was not found",
         )
 
+    # Typing error but still runs
     post_query.update(post.model_dump(), synchronize_session=False)
 
     db.commit()
@@ -148,7 +146,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # Hash the password
-    hashed_password = password_hash.hash(user.password)
+    hashed_password = utils.hash(user.password)
     user.password = hashed_password
 
     new_user = models.User(**user.model_dump())
@@ -159,3 +157,16 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     return new_user
+
+
+@app.get("/users/{id}", response_model=schemas.UserOut)
+def get_user(id: int, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User with id: {id} not found",
+        )
+
+    return user
