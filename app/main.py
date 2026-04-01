@@ -1,23 +1,15 @@
 from fastapi import FastAPI, status, HTTPException, Response, Depends
-from pydantic import BaseModel
 from typing import Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 from sqlalchemy.orm import Session
-from . import models
+from . import models, schemas
 from .database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-    # rating: Optional[int] = None
 
 
 while True:
@@ -45,15 +37,6 @@ async def root():
     return {"message": "Hello World"}
 
 
-# Test route
-@app.get("/sql")
-def test_posts(db: Session = Depends(get_db)):
-
-    posts = db.query(models.Post).all()
-
-    return {"data": posts}
-
-
 @app.get("/posts")
 async def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts """)
@@ -65,7 +48,7 @@ async def get_posts(db: Session = Depends(get_db)):
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(post: Post, db: Session = Depends(get_db)):
+def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     # # Prevents SQL injection via sanitation
     # cursor.execute(
     #     """INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * """,
@@ -107,7 +90,7 @@ def get_post_id(id: int, db: Session = Depends(get_db)):
 
 # Updating a post
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
 
     # cursor.execute(
     #     """UPDATE posts SET title = %s, content = %s, published =  %s WHERE id = %s RETURNING *""",
