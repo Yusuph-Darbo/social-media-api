@@ -2,10 +2,14 @@ from fastapi import FastAPI, status, HTTPException, Response, Depends
 from typing import Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from pwdlib import PasswordHash
 import time
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .database import engine, get_db
+
+
+password_hash = PasswordHash.recommended()
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -141,14 +145,17 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@app.post("/users", status_code=status.HTTP_201_CREATED)
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Hash the password
+    hashed_password = password_hash.hash(user.password)
+    user.password = hashed_password
+
     new_user = models.User(**user.model_dump())
 
-    # Add new post to db
     db.add(new_user)
     db.commit()
-    # Return the newly created post
+    # Return the newly created user
     db.refresh(new_user)
 
     return new_user
