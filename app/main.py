@@ -17,7 +17,7 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
+    # rating: Optional[int] = None
 
 
 while True:
@@ -75,9 +75,9 @@ def create_post(post: Post, db: Session = Depends(get_db)):
 
     # # Commits to db
     # conn.commit()
-    new_post = models.Post(
-        title=post.title, content=post.content, published=post.published
-    )
+
+    # Dynamic way by converting to dict and unpacking
+    new_post = models.Post(**post.dict())
 
     # Add new post to db
     db.add(new_post)
@@ -89,10 +89,12 @@ def create_post(post: Post, db: Session = Depends(get_db)):
 
 
 @app.get("/posts/{id}")
-def get_post_id(id: int):
+def get_post_id(id: int, db: Session = Depends(get_db)):
     # For some reason will crash if id is above 9 without comma after id
-    cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
-    post = cursor.fetchone()
+    # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
+    # post = cursor.fetchone()
+
+    post = db.query(models.Post).filter(models.Post.id == id).first()
 
     if not post:
         raise HTTPException(
