@@ -107,22 +107,32 @@ def get_post_id(id: int, db: Session = Depends(get_db)):
 
 # Updating a post
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post):
+def update_post(id: int, post: Post, db: Session = Depends(get_db)):
 
-    cursor.execute(
-        """UPDATE posts SET title = %s, content = %s, published =  %s WHERE id = %s RETURNING *""",
-        (post.title, post.content, post.published, str(id)),
-    )
-    updated_posts = cursor.fetchall()
-    conn.commit()
+    # cursor.execute(
+    #     """UPDATE posts SET title = %s, content = %s, published =  %s WHERE id = %s RETURNING *""",
+    #     (post.title, post.content, post.published, str(id)),
+    # )
+    # updated_posts = cursor.fetchall()
+    # conn.commit()
 
-    if not updated_posts:
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+
+    updated_post = post_query.first()
+
+    if not updated_post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id {id} was not found",
         )
 
-    return {"data": updated_posts}
+    post_query.update(post.model_dump(), synchronize_session=False)
+
+    db.commit()
+
+    updated_post = post_query.first()
+
+    return {"data": updated_post}
 
 
 # Deleting a post
