@@ -127,16 +127,22 @@ def update_post(id: int, post: Post):
 
 # Deleting a post
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int):
+def delete_post(id: int, db: Session = Depends(get_db)):
 
-    cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(id),))
-    post = cursor.fetchone()
-    conn.commit()
+    # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(id),))
+    # post = cursor.fetchone()
+    # conn.commit()
 
-    if not post:
+    post = db.query(models.Post).filter(models.Post.id == id)
+
+    if not post.first():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id {id} was not found",
         )
+
+    post.delete(synchronize_session=False)
+
+    db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
