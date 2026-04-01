@@ -60,7 +60,7 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     # conn.commit()
 
     # Dynamic way by converting to dict and unpacking
-    new_post = models.Post(**post.dict())
+    new_post = models.Post(**post.model_dump())
 
     # Add new post to db
     db.add(new_post)
@@ -139,3 +139,16 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@app.post("/users", status_code=status.HTTP_201_CREATED)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    new_user = models.User(**user.model_dump())
+
+    # Add new post to db
+    db.add(new_user)
+    db.commit()
+    # Return the newly created post
+    db.refresh(new_user)
+
+    return new_user
