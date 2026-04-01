@@ -1,5 +1,5 @@
 from fastapi import FastAPI, status, HTTPException, Response, Depends
-from typing import Optional
+from typing import Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
@@ -37,17 +37,17 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.Post])
 async def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM posts """)
     # posts = cursor.fetchall()
 
     # Querying using ORM
     posts = db.query(models.Post).all()
-    return {"data": posts}
+    return posts
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
 def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     # # Prevents SQL injection via sanitation
     # cursor.execute(
@@ -68,10 +68,10 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     # Return the newly created post
     db.refresh(new_post)
 
-    return {"data": new_post}
+    return new_post
 
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=schemas.Post)
 def get_post_id(id: int, db: Session = Depends(get_db)):
     # For some reason will crash if id is above 9 without comma after id
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
@@ -85,11 +85,11 @@ def get_post_id(id: int, db: Session = Depends(get_db)):
             detail=f"Post with id {id} was not found",
         )
 
-    return {"data": post}
+    return post
 
 
 # Updating a post
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model=schemas.Post)
 def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
 
     # cursor.execute(
@@ -115,7 +115,7 @@ def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)
 
     updated_post = post_query.first()
 
-    return {"data": updated_post}
+    return updated_post
 
 
 # Deleting a post
