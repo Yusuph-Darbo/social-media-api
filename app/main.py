@@ -2,7 +2,6 @@ from fastapi import FastAPI
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
-from sqlalchemy.orm import Session
 from . import models
 from .database import engine, get_db
 from .routes import post, user, auth

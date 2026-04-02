@@ -1,5 +1,5 @@
 from fastapi import status, HTTPException, Response, Depends, APIRouter
-from .. import models, schemas
+from .. import models, schemas, oauth2
 from typing import List
 from sqlalchemy.orm import Session
 from ..database import get_db
@@ -18,7 +18,11 @@ async def get_posts(db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
+def create_post(
+    post: schemas.PostCreate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
+):
     # # Prevents SQL injection via sanitation
     # cursor.execute(
     #     """INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING * """,
@@ -28,7 +32,7 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
     # # Commits to db
     # conn.commit()
-
+    print(user_id)
     # Dynamic way by converting to dict and unpacking
     new_post = models.Post(**post.model_dump())
 
@@ -60,7 +64,11 @@ def get_post_id(id: int, db: Session = Depends(get_db)):
 
 # Updating a post
 @router.put("/{id}", response_model=schemas.Post)
-def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
+def update_post(
+    id: int,
+    post: schemas.PostCreate,
+    db: Session = Depends(get_db),
+):
 
     # cursor.execute(
     #     """UPDATE posts SET title = %s, content = %s, published =  %s WHERE id = %s RETURNING *""",
