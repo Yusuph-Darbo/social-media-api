@@ -80,7 +80,7 @@ def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)
         )
 
     # Typing error but still runs
-    post_query.update(post.model_dump(), synchronize_session=False)
+    post_query.update(post.model_dump(), synchronize_session=False)  # type: ignore
 
     db.commit()
 
