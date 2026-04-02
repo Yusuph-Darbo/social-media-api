@@ -8,7 +8,10 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 @router.get("/", response_model=List[schemas.Post])
-async def get_posts(db: Session = Depends(get_db)):
+async def get_posts(
+    db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
+):
     # cursor.execute("""SELECT * FROM posts """)
     # posts = cursor.fetchall()
 
@@ -46,7 +49,11 @@ def create_post(
 
 
 @router.get("/{id}", response_model=schemas.Post)
-def get_post_id(id: int, db: Session = Depends(get_db)):
+def get_post_id(
+    id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
+):
     # For some reason will crash if id is above 9 without comma after id
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
     # post = cursor.fetchone()
@@ -68,6 +75,7 @@ def update_post(
     id: int,
     post: schemas.PostCreate,
     db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
 ):
 
     # cursor.execute(
@@ -99,7 +107,11 @@ def update_post(
 
 # Deleting a post
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
+def delete_post(
+    id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(oauth2.get_current_user),
+):
 
     # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(id),))
     # post = cursor.fetchone()
