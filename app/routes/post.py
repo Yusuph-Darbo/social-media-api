@@ -3,6 +3,7 @@ from .. import models, schemas, oauth2
 from typing import List
 from sqlalchemy.orm import Session
 from ..database import get_db
+from ..schemas import UserOut
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
@@ -10,11 +11,11 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 @router.get("/", response_model=List[schemas.Post])
 async def get_posts(
     db: Session = Depends(get_db),
-    user_id: int = Depends(oauth2.get_current_user),
+    current_user: UserOut = Depends(oauth2.get_current_user),
 ):
     # cursor.execute("""SELECT * FROM posts """)
     # posts = cursor.fetchall()
-
+    print(current_user.email)
     # Querying using ORM
     posts = db.query(models.Post).all()
     return posts
@@ -24,7 +25,7 @@ async def get_posts(
 def create_post(
     post: schemas.PostCreate,
     db: Session = Depends(get_db),
-    user_id: int = Depends(oauth2.get_current_user),
+    current_user: UserOut = Depends(oauth2.get_current_user),
 ):
     # # Prevents SQL injection via sanitation
     # cursor.execute(
@@ -35,7 +36,7 @@ def create_post(
 
     # # Commits to db
     # conn.commit()
-    print(user_id)
+
     # Dynamic way by converting to dict and unpacking
     new_post = models.Post(**post.model_dump())
 
@@ -52,7 +53,7 @@ def create_post(
 def get_post_id(
     id: int,
     db: Session = Depends(get_db),
-    user_id: int = Depends(oauth2.get_current_user),
+    current_user: UserOut = Depends(oauth2.get_current_user),
 ):
     # For some reason will crash if id is above 9 without comma after id
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
@@ -75,7 +76,7 @@ def update_post(
     id: int,
     post: schemas.PostCreate,
     db: Session = Depends(get_db),
-    user_id: int = Depends(oauth2.get_current_user),
+    current_user: UserOut = Depends(oauth2.get_current_user),
 ):
 
     # cursor.execute(
@@ -110,7 +111,7 @@ def update_post(
 def delete_post(
     id: int,
     db: Session = Depends(get_db),
-    user_id: int = Depends(oauth2.get_current_user),
+    current_user: UserOut = Depends(oauth2.get_current_user),
 ):
 
     # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (str(id),))

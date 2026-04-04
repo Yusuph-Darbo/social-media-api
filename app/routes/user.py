@@ -3,7 +3,7 @@ from .. import models, schemas, utils
 from sqlalchemy.orm import Session
 from ..database import get_db
 
-router = APIRouter(prefix="/posts", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
