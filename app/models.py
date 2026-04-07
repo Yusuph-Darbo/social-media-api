@@ -23,7 +23,7 @@ class Post(Base):
     )
 
     # It will fetch the user based on the user_id
-    user = relationship("User")
+    owner = relationship("User")
 
 
 class User(Base):
