@@ -36,3 +36,19 @@ class User(Base):
     created_at = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
     )
+
+
+class Vote(Base):
+    __tablename__ = "votes"
+    __table_args__ = {"schema": "social_media_api"}
+
+    user_id = Column(
+        Integer,
+        ForeignKey("social_media_api.users.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    post_id = Column(
+        Integer,
+        ForeignKey("social_media_api.posts.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
