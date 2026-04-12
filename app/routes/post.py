@@ -73,7 +73,7 @@ def create_post(
     return new_post
 
 
-@router.get("/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.PostOut)
 def get_post_id(
     id: int,
     db: Session = Depends(get_db),
@@ -90,13 +90,19 @@ def get_post_id(
         .first()
     )
 
+    votes = (
+        db.query(func.count(models.Vote.post_id))
+        .filter(models.Vote.post_id == id)
+        .scalar()
+    )
+
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post with id {id} was not found",
         )
 
-    return post
+    return {"post": post, "votes": votes or 0}
 
 
 # Updating a post

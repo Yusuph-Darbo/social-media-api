@@ -45,8 +45,6 @@ class Post(PostBase):
 
 
 class PostOut(BaseModel):
-    """Post plus vote count (e.g. list feed)."""
-
     post: Post
     votes: int
 
