@@ -44,7 +44,9 @@ class Post(PostBase):
         from_attributes = True
 
 
-class PostOut(PostBase):
+class PostOut(BaseModel):
+    """Post plus vote count (e.g. list feed)."""
+
     post: Post
     votes: int
 

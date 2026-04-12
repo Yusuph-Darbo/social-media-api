@@ -9,8 +9,7 @@ from ..schemas import UserOut
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
-# @router.get("/", response_model=List[schemas.PostOut])
-@router.get("/")
+@router.get("/", response_model=List[schemas.PostOut])
 async def get_posts(
     db: Session = Depends(get_db),
     current_user: UserOut = Depends(oauth2.get_current_user),
@@ -18,30 +17,32 @@ async def get_posts(
     skip: int = 0,
     search: Optional[str] = "",
 ):
-    # cursor.execute("""SELECT * FROM posts """)
-    # posts = cursor.fetchall()
-
-    # Querying using ORM
-    # posts = (
-    #     db.query(models.Post)
-    #     .filter(models.Post.title.contains(search))
-    #     .limit(limit)
-    #     .offset(skip)
-    #     .all()
-    # )
-
-    results = (
-        db.query(models.Post, func.count(models.Vote.post_id).label("votes"))
-        .outerjoin(models.Vote, models.Vote.post_id == models.Post.id)
-        .join(models.User, models.User.id == models.Post.user_id)
-        .group_by(models.Post.id, models.User.id)
+    posts = (
+        db.query(models.Post)
+        .options(joinedload(models.Post.owner))
         .filter(models.Post.title.contains(search))
         .limit(limit)
         .offset(skip)
         .all()
     )
 
-    return [{"post": post, "votes": votes} for post, votes in results]
+    # Extract post IDs from the fetched posts
+    post_ids = [p.id for p in posts]
+
+    if not post_ids:
+        return []
+
+    # Count votes for the retrieved posts only
+    votes_rows = (
+        db.query(models.Vote.post_id, func.count(models.Vote.post_id))
+        .filter(models.Vote.post_id.in_(post_ids))
+        .group_by(models.Vote.post_id)
+        .all()
+    )
+    # Convert vote results into a dictionary
+    votes_map = {pid: count for pid, count in votes_rows}
+
+    return [{"post": p, "votes": votes_map.get(p.id, 0)} for p in posts]
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
@@ -82,7 +83,12 @@ def get_post_id(
     # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (str(id),))
     # post = cursor.fetchone()
 
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = (
+        db.query(models.Post)
+        .options(joinedload(models.Post.owner))
+        .filter(models.Post.id == id)
+        .first()
+    )
 
     if not post:
         raise HTTPException(

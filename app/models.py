@@ -22,8 +22,7 @@ class Post(Base):
         nullable=False,
     )
 
-    # It will fetch the user based on the user_id
-    owner = relationship("User")
+    owner = relationship("User", foreign_keys=[user_id])
 
 
 class User(Base):
