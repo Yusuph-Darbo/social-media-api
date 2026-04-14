@@ -40,4 +40,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_table("users")
+    op.drop_table("users", schema="social_media_api")
