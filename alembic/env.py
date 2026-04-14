@@ -72,13 +72,16 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        connection.execute(text("SET search_path TO social_media_api"))
+        # Ensure schema exists *and is committed* before Alembic creates
+        # its version table or runs schema-qualified operations.
+        with connection.begin():
+            connection.execute(text("CREATE SCHEMA IF NOT EXISTS social_media_api"))
 
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            include_schemas=True,
             version_table_schema="social_media_api",
+            include_schemas=True,
         )
 
         with context.begin_transaction():
