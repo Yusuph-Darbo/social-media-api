@@ -1,0 +1,39 @@
+services:
+  api:
+    image: yusuphdarbo/social_media_api
+    ports:
+      - 80:8000
+    environment:
+      - DB_HOSTNAME={DB_HOSTNAME}
+      - DB_PORT=${DB_PORT}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_USERNAME=${DB_USERNAME}
+      - secret_key=${secret_key}
+      - algorithm=${algorithm}
+      - access_token_expire_minutes=${access_token_expire_minutes}
+    depends_on:
+      db:
+        condition: service_healthy
+
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  db:
+    image: postgres:16
+
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d yusuphdarbo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+volumes:
+  postgres-db:
