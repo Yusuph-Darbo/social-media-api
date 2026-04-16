@@ -28,7 +28,7 @@ mypy_extensions==1.1.0
 packaging==26.0
 pathspec==1.0.4
 platformdirs==4.9.4
-psycopg2==2.9.11
+psycopg2-binary==2.9.11
 pwdlib==0.3.0
 pycparser==3.0
 pydantic==2.12.5
