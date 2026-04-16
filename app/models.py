@@ -7,7 +7,6 @@ from .database import Base
 
 class Post(Base):
     __tablename__ = "posts"
-    __table_args__ = {"schema": "social_media_api"}
 
     id = Column(Integer, primary_key=True, nullable=False)
     title = Column(String, nullable=False)
@@ -18,7 +17,7 @@ class Post(Base):
     )
     user_id = Column(
         Integer,
-        ForeignKey("social_media_api.users.id", ondelete="CASCADE"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -27,7 +26,6 @@ class Post(Base):
 
 class User(Base):
     __tablename__ = "users"
-    __table_args__ = {"schema": "social_media_api"}
 
     id = Column(Integer, primary_key=True, nullable=False)
     email = Column(String, nullable=False, unique=True)
@@ -39,15 +37,14 @@ class User(Base):
 
 class Vote(Base):
     __tablename__ = "votes"
-    __table_args__ = {"schema": "social_media_api"}
 
     user_id = Column(
         Integer,
-        ForeignKey("social_media_api.users.id", ondelete="CASCADE"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
     )
     post_id = Column(
         Integer,
-        ForeignKey("social_media_api.posts.id", ondelete="CASCADE"),
+        ForeignKey("posts.id", ondelete="CASCADE"),
         primary_key=True,
     )
